@@ -6,40 +6,23 @@ from `main` — programmatically — so you don't have to count commits manually
 
 ## How it works
 
-### 1. Find the divergence point
+### 1. Soft-reset back to the divergence point
 
 ```bash
-merge_base=$(git merge-base HEAD main)
+git reset --soft $(git merge-base HEAD main)
 ```
 
-`git merge-base` returns the best common ancestor between your current branch (`HEAD`)
-and `main`. This is the commit at which the two branches diverged.
+`git merge-base HEAD main` returns the best common ancestor between your branch and
+`main` — the commit where they diverged. Passing it directly to `git reset --soft`
+moves `HEAD` back to that point while leaving all your changes staged.
 
-### 2. Soft-reset back to that commit
-
-```bash
-git reset --soft "$merge_base"
-```
-
-A **soft reset** moves `HEAD` back to the divergence point but leaves all your changes
-staged. Every file that was touched across all your PR commits is now staged and ready
-to be committed as one.
-
-### 3. Create the single squashed commit
+### 2. Create the single squashed commit
 
 ```bash
 git commit -m "feat: your descriptive single commit message"
 ```
 
-### All together
-
-```bash
-merge_base=$(git merge-base HEAD main)
-git reset --soft "$merge_base"
-git commit -m "feat: your descriptive single commit message"
-```
-
-### Then force-push to update your PR branch
+### 3. Force-push to update your PR branch
 
 ```bash
 git push --force-with-lease
@@ -64,8 +47,7 @@ feature:           D - E - F - G   (4 messy commits)
 
 ```bash
 # On your feature branch
-merge_base=$(git merge-base HEAD main)   # resolves to C
-git reset --soft "$merge_base"           # HEAD moves to C, D+E+F+G staged
+git reset --soft $(git merge-base HEAD main)  # HEAD moves to C, D+E+F+G staged
 git commit -m "feat: implement new widget"
 git push --force-with-lease
 ```
